@@ -1,0 +1,49 @@
+{
+  "name": "kerrys-mod",
+  "version": "1.0.0",
+  "private": true,
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "node server.js",
+    "desktop": "electron .",
+    "build:win": "electron-builder --win nsis"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "howler": "^2.2.4",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "electron": "^44.4.3",
+    "electron-builder": "^26.15.3",
+    "sharp": "^0.35.4"
+  },
+  "build": {
+    "appId": "com.kerrysmod.game",
+    "productName": "Kerry's Mod",
+    "asar": true,
+    "files": [
+      "public/**/*",
+      "server.js",
+      "build/icon.png",
+      "build/logo.svg",
+      "electron-main.js",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

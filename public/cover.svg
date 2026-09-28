@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="900" viewBox="0 0 800 900">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ff8a00"/>
+      <stop offset=".58" stop-color="#ff5a00"/>
+      <stop offset="1" stop-color="#171c2b"/>
+    </linearGradient>
+    <linearGradient id="ground" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#29384a"/>
+      <stop offset="1" stop-color="#0b0f17"/>
+    </linearGradient>
+    <filter id="shadow" x="-30%" y="-30%" width="170%" height="170%">
+      <feDropShadow dx="14" dy="18" stdDeviation="6" flood-color="#6b2100" flood-opacity=".7"/>
+    </filter>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse" patternTransform="rotate(18)">
+      <path d="M0 0H44M0 0V44" stroke="#ffffff" stroke-opacity=".08" stroke-width="2"/>
+    </pattern>
+  </defs>
+  <rect width="800" height="900" fill="#0b0f17"/>
+  <rect x="22" y="22" width="756" height="856" rx="42" fill="url(#sky)"/>
+  <circle cx="640" cy="190" r="150" fill="#ffd66b" opacity=".24" filter="url(#soft)"/>
+  <path d="M22 590L190 470l105 67 151-142 310 205v278H22z" fill="url(#ground)"/>
+  <path d="M22 610L778 500v378H22z" fill="url(#grid)"/>
+  <path d="M22 620L778 530" stroke="#ffad3d" stroke-opacity=".35" stroke-width="3"/>
+  <g opacity=".9" fill="#111827">
+    <rect x="92" y="442" width="70" height="142" rx="8" transform="rotate(-9 92 442)"/>
+    <rect x="650" y="382" width="62" height="142" rx="8" transform="rotate(11 650 382)"/>
+    <rect x="125" y="405" width="17" height="160" fill="#ffbd65" transform="rotate(-9 125 405)"/>
+    <rect x="674" y="354" width="15" height="160" fill="#ffbd65" transform="rotate(11 674 354)"/>
+  </g>
+  <g transform="translate(250 92)" filter="url(#shadow)">
+    <rect width="300" height="300" rx="48" fill="#ff7100"/>
+    <path fill="#fff" d="M82 54h52v78l90-78h54l-103 124 103 125h-54l-90-103v103H82z"/>
+  </g>
+  <g transform="translate(400 575)" filter="url(#shadow)">
+    <path d="M-67 108V-15q0-58 67-58t67 58v123z" fill="#f2edc7"/>
+    <circle cy="-78" r="32" fill="#f8f2d1"/>
+    <rect x="-24" y="-20" width="48" height="67" rx="4" fill="#7798c2"/>
+    <rect x="-82" y="-2" width="18" height="92" rx="9" fill="#f2edc7" transform="rotate(8 -82 -2)"/>
+    <rect x="64" y="-2" width="18" height="92" rx="9" fill="#f2edc7" transform="rotate(-8 64 -2)"/>
+    <rect x="-42" y="108" width="28" height="74" rx="10" fill="#728db5"/>
+    <rect x="14" y="108" width="28" height="74" rx="10" fill="#728db5"/>
+  </g>
+  <g fill="#fff" font-family="Arial, sans-serif" text-anchor="middle">
+    <text x="400" y="790" font-size="48" font-weight="900" letter-spacing="5">KERRY'S MOD</text>
+    <text x="400" y="832" font-size="18" font-weight="700" letter-spacing="4" opacity=".78">BUILD  •  PLAY  •  BREAK EVERYTHING</text>
+  </g>
+  <rect x="22" y="22" width="756" height="856" rx="42" fill="none" stroke="#fff" stroke-opacity=".22" stroke-width="3"/>
+</svg>
