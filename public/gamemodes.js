@@ -39,7 +39,8 @@
   class Gamemode {
     constructor(ctx){ this.ctx=ctx; this.id='base'; this.title='Base'; this.running=false; }
     start(){ this.running=true; }
-    stop(){ this.running=false; }
+    stop(){ this.clearPickups(); super.stop(); }
+    stopLegacy(){ this.running=false; }
     tick(){}
     endRound(reason='complete',winner=''){ this.running=false; this.ctx.finishRound({mode:this.id,reason,winner}); }
     scoreboard(){ return []; }
@@ -82,15 +83,55 @@
   }
 
   class PVP extends Gamemode {
-    constructor(ctx){ super(ctx); this.id='gm_pvp'; this.title='PVP'; this.limit=15; this.teamMode=false; this.loadout='rifle'; this.startedAt=0; this.finalized=false; }
-    start(){ super.start(); this.finalized=false; this.ctx.enableVoting(); this.startedAt=now(); this.ctx.setLegacy('pvp'); this.ctx.setRoundTimer(300); this.configureLoadout(); this.ctx.log('PVP · '+(this.teamMode?'Team Deathmatch':'Deathmatch')+' · first to '+this.limit); }
+    constructor(ctx){ super(ctx); this.id='gm_pvp'; this.title='PVP'; this.limit=15; this.teamMode=false; this.loadout='rifle'; this.startedAt=0; this.finalized=false; this.pickups=[]; this.pickupClock=0; this.armor=0; this.combatPatched=false; }
+    start(){ super.start(); this.finalized=false; this.ctx.enableVoting(); this.startedAt=now(); this.ctx.setLegacy('pvp'); this.ctx.setRoundTimer(300); this.configureLoadout(); this.spawnPickups(); this.patchCombat(); this.ctx.log('PVP · '+(this.teamMode?'Team Deathmatch':'Deathmatch')+' · first to '+this.limit); }
     configureLoadout(){ const idx={pistol:2,shotgun:3,rifle:4,sniper:5,rpg:6}[this.loadout] ?? 4; if(typeof cw!=='undefined')cw=idx; if(typeof W!=='undefined'&&Array.isArray(W)&&W[idx]&&W[idx].a<=0)W[idx].a=W[idx].mag||W[idx].a; }
     setLoadout(v){ if(['pistol','shotgun','rifle','sniper','rpg'].includes(v))this.loadout=v; this.configureLoadout(); }
     setTeamMode(v){ this.teamMode=!!v; }
+    spawnPickups(){
+      this.clearPickups();
+      const base=Array.isArray(SPAWN)?[SPAWN[0],SPAWN[2]]:[0,0];
+      const spots=[[base[0]+22,base[1]],[base[0]-22,base[1]],[base[0],base[1]+22],[base[0],base[1]-22]];
+      const types=['health','armor','ammo','health'];
+      spots.forEach((p,i)=>{const type=types[i%types.length];const color=type==='health'?0x48e28d:type==='armor'?0x69a7ff:0xffca4d;const mesh=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.18,24),new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:1.4,metalness:.25,roughness:.3}));mesh.position.set(p[0],.3,p[1]);mesh.castShadow=true;sc.add(mesh);this.pickups.push({type,mesh,available:true,respawnAt:0});});
+    }
+    clearPickups(){for(const p of this.pickups){try{sc.remove(p.mesh)}catch{}}this.pickups=[];}
+    applyPickup(type){
+      if(type==='health')hp=clamp((hp||0)+40,0,100);
+      if(type==='armor')this.armor=clamp(this.armor+40,0,100);
+      if(type==='ammo'){const wv=W[cw];if(wv&&wv.mag)wv.a=wv.mag;}
+      this.ctx.log('PICKUP · '+type.toUpperCase());
+    }
+    patchCombat(){
+      if(this.combatPatched)return; this.combatPatched=true;
+      try{
+        const oldHit=hitRemote;
+        hitRemote=(id,d)=>{ if(this.teamMode){const teams=this.teams();if(teams[myPeer||myId]===teams[id])return;} return oldHit(id,d); };
+      }catch{}
+      try{
+        const oldHurt=hurt2;
+        hurt2=(d,k)=>{ if(this.armor>0){const blocked=Math.min(this.armor,d*.6);this.armor-=blocked;d-=blocked;flv=.35;} if(d>0)return oldHurt(d,k); };
+      }catch{}
+    }
+    checkPickups(){
+      for(const p of this.pickups){
+        if(!p.available || p.respawnAt>now())continue;
+        let target=null;
+        const localX=pb.position.x,localZ=pb.position.z;
+        if(this.ctx.isHost()){
+          for(const q of this.ctx.players()){const info=q===myPeer?{x:localX,z:localZ}:((this.ctx.remotePlayers().find(x=>x.id===q))||{});if(Math.hypot((info.x||0)-p.mesh.position.x,(info.z||0)-p.mesh.position.z)<2){target=q;break;}}
+        }
+        if(!target)continue;
+        p.available=false;p.mesh.visible=false;p.respawnAt=now()+10000;this.ctx.send('gm:pvp:pickup',{id:this.pickups.indexOf(p),type:p.type,target});
+        if(target===myPeer||target===myId)this.applyPickup(p.type);
+      }
+      for(const p of this.pickups)if(!p.available&&p.respawnAt<=now()){p.available=true;p.mesh.visible=true;}
+    }
     teams(){ const out={}; const list=this.ctx.players(); list.forEach((id,i)=>out[id]=i%2); return out; }
     scoreboard(){ const src=(typeof SCR!=='undefined')?SCR:{}; return Object.entries(src).sort((a,b)=>(b[1]?.k||0)-(a[1]?.k||0)).map(([id,s])=>({id,kills:s?.k||0,deaths:s?.d||0,team:this.teams()[id]??0})); }
     tick(){
       if(!this.running)return;
+      this.checkPickups();
       if(this.ctx.isHost()){
         const rows=this.scoreboard(), winner=rows.find(x=>x.kills>=this.limit);
         if(winner&&!this.finalized){ this.finalized=true; this.endRound('score',winner.id); }
@@ -292,7 +333,9 @@
     patchNetworking(){
       if(!room)return;
       room.on('gm:vote:start',m=>{if(m.isMe)return;this.voting.receiveStart(m.data||{});});
-      room.on('gm:vote:cast',m=>{if(!this.isHost())return;this.voting.receiveVote(m.data||{});});
+      room.on('gm:vote:cast',m=>{if(!this.isHost())return;this.voting.receiveVote(m.data||{});this.send('gm:vote:update',{votes:[...this.voting.votes.entries()]});});
+      room.on('gm:vote:update',m=>{if(m.isMe)return;const rows=Array.isArray(m.data?.votes)?m.data.votes:[];this.voting.votes=new Map(rows);this.voting.render();});
+      room.on('gm:pvp:pickup',m=>{if(m.isMe)return;const d=m.data||{};if(this.modeId==='gm_pvp'&&d.target===myPeer)this.modes.get('gm_pvp').applyPickup(d.type);});
       room.on('gm:vote:end',m=>{if(m.isMe)return;this.voting.receiveEnd(m.data||{});});
       room.on('gm:hs:eliminate',m=>{const id=String(m.data?.id||'');if(id) this.events.emit('hs:eliminate',id);});
       room.on('gm:mode',m=>{if(m.isMe)return; const d=m.data||{};if(d.suiteMode)this.modeId=d.suiteMode;if(d.mapId)this.currentMapId=d.mapId;});
