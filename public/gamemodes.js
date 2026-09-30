@@ -39,15 +39,14 @@
   class Gamemode {
     constructor(ctx){ this.ctx=ctx; this.id='base'; this.title='Base'; this.running=false; }
     start(){ this.running=true; }
-    stop(){ this.clearPickups(); super.stop(); }
-    stopLegacy(){ this.running=false; }
+    stop(){ this.running=false; }
     tick(){}
     endRound(reason='complete',winner=''){ this.running=false; this.ctx.finishRound({mode:this.id,reason,winner}); }
     scoreboard(){ return []; }
   }
 
   class Sandbox extends Gamemode {
-    constructor(ctx){ super(ctx); this.id='gm_sandbox'; this.title='Sandbox'; this.god=true; this.noclip=false; this.saveKey='autosave'; this.variant=false; }
+    constructor(ctx){ super(ctx); this.id='gm_sandbox'; this.title='Sandbox'; this.god=true; this.noclip=false; this.saveKey='autosave'; this.variant=false; this.padMeshes=[]; }
     start(){ super.start(); this.ctx.clearRoundTimer(); this.ctx.disableVoting(); this.ctx.setLegacy('sb'); this.variant=this.ctx.currentMapId.startsWith('sb_'); this.applyVariant(); this.ctx.log('SANDBOX · free build · no round timer'); }
     applyVariant(){
       this.removeVariant();
@@ -129,6 +128,7 @@
     }
     teams(){ const out={}; const list=this.ctx.players(); list.forEach((id,i)=>out[id]=i%2); return out; }
     scoreboard(){ const src=(typeof SCR!=='undefined')?SCR:{}; return Object.entries(src).sort((a,b)=>(b[1]?.k||0)-(a[1]?.k||0)).map(([id,s])=>({id,kills:s?.k||0,deaths:s?.d||0,team:this.teams()[id]??0})); }
+    stop(){ this.clearPickups(); super.stop(); }
     tick(){
       if(!this.running)return;
       this.checkPickups();
