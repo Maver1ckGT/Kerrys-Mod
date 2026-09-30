@@ -69,6 +69,43 @@ button{cursor:pointer;transition:transform .15s ease,border-color .15s ease,back
 #hitMarker::after{
     transform:translate(-50%,-50%) rotate(-45deg);
 }
+<style>
+:root{--bg:#070b10;--fg:#f5f8fb;--mu:#9bacbb;--ac:#ffbd45;--ac2:#66e6ee;--pn:rgba(9,15,23,.78);--ln:rgba(255,255,255,.13);--glow:rgba(255,188,69,.18)}
+body{letter-spacing:.01em}
+.scr{background:
+ radial-gradient(circle at 18% 20%,rgba(86,213,216,.10),transparent 28%),
+ radial-gradient(circle at 82% 74%,rgba(255,181,46,.12),transparent 30%),
+ radial-gradient(ellipse at 50% 38%,rgba(35,48,59,.56),rgba(3,7,12,.96) 72%),
+ repeating-linear-gradient(0deg,transparent 0 31px,rgba(255,255,255,.025) 32px),
+ repeating-linear-gradient(90deg,transparent 0 31px,rgba(255,255,255,.02) 32px)}
+.card{position:relative;isolation:isolate;overflow:hidden;border-color:rgba(255,255,255,.12);box-shadow:0 26px 90px rgba(0,0,0,.54),0 0 0 1px rgba(255,255,255,.02) inset,0 0 46px rgba(255,181,46,.08)}
+.card::before{content:"";position:absolute;inset:-2px;z-index:-2;background:conic-gradient(from 210deg,transparent 0 18%,rgba(86,213,216,.13) 27%,transparent 42%,rgba(255,181,46,.15) 64%,transparent 78%);filter:blur(18px);animation:cardGlow 12s linear infinite}
+.card::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,#56d5d8 25%,#ffbd45 70%,transparent);opacity:.95}
+@keyframes cardGlow{to{transform:rotate(1turn)}}
+h1{font-size:clamp(42px,7vw,68px);letter-spacing:.045em;text-shadow:0 0 18px rgba(255,181,46,.14),0 3px 0 #713b0c}
+h1::first-letter{filter:drop-shadow(0 0 8px rgba(255,181,46,.28))}
+h3{font-size:11px;letter-spacing:.14em;color:#78edf2}
+button,input,select{background:linear-gradient(180deg,rgba(30,43,56,.96),rgba(17,25,34,.96));border-color:rgba(255,255,255,.11);box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 5px 16px rgba(0,0,0,.14)}
+button:hover{border-color:var(--ac2);box-shadow:0 0 0 1px rgba(86,213,216,.10) inset,0 8px 24px rgba(0,0,0,.2),0 0 18px rgba(86,213,216,.08)}
+button.on{box-shadow:0 0 22px rgba(255,181,46,.18)}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,#9db0bf 50%),linear-gradient(135deg,#9db0bf 50%,transparent 50%);background-position:calc(100% - 16px) 50%,calc(100% - 11px) 50%;background-size:5px 5px,5px 5px;background-repeat:no-repeat;padding-right:32px}
+#menu .card{width:min(700px,calc(100% - 22px));padding:28px}
+#menu .card>p{font-size:14px;max-width:620px}
+#menu #ms,#menu #mm{margin-top:16px;padding:14px;border:1px solid rgba(255,255,255,.07);border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.01));box-shadow:0 10px 30px rgba(0,0,0,.15) inset}
+#menu #bSolo{background:linear-gradient(135deg,#ffca5a,#f39a28);color:#17110a;border-color:#ffd782;box-shadow:0 10px 28px rgba(255,177,58,.16)}
+#menu #bHost,#menu #bJoin,#menu #bSettings{background:linear-gradient(180deg,#223240,#17232e)}
+#menu #net{padding:8px 10px;border:1px solid rgba(86,213,216,.12);border-radius:8px;background:rgba(86,213,216,.035)}
+#hud::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 46%,transparent 42%,rgba(0,0,0,.14) 75%,rgba(0,0,0,.45));pointer-events:none}
+#xh{width:18px;height:18px;margin:-9px;border:1px solid rgba(255,255,255,.85);box-shadow:0 0 8px rgba(255,255,255,.28);opacity:.72}
+#xh::before,#xh::after{content:"";position:absolute;background:currentColor;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:2px}
+#xh::before{width:2px;height:30px}#xh::after{height:2px;width:30px}
+#tl{top:16px;padding:8px 13px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(7,12,18,.48);backdrop-filter:blur(10px);color:#dce8ef;font-size:12px;letter-spacing:.06em;text-transform:uppercase;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+#wp{right:16px;bottom:16px;min-width:180px;padding:12px 14px;border:1px solid rgba(255,255,255,.1);border-right:3px solid var(--ac);border-radius:10px;background:linear-gradient(120deg,rgba(8,13,19,.72),rgba(19,28,39,.76));backdrop-filter:blur(10px);font-size:15px;line-height:1.15;box-shadow:0 12px 30px rgba(0,0,0,.22),0 0 24px rgba(255,181,46,.05)}
+#gs{top:44px;padding:8px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(8,14,20,.42);backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(0,0,0,.16)}
+#log .entry{background:linear-gradient(100deg,rgba(11,18,27,.88),rgba(11,18,27,.56));box-shadow:0 8px 20px rgba(0,0,0,.15)}
+#vg{background:radial-gradient(circle at 50% 52%,transparent 38%,rgba(0,0,0,.11) 62%,rgba(0,0,0,.56) 100%);transition:opacity .2s ease}
+.vehicle-glow{mix-blend-mode:screen;opacity:.72}
+@media (max-width:700px){#menu .card{width:100%;padding:18px}#tl{top:8px;font-size:10px;padding:6px 10px}#wp{right:10px;bottom:38px;min-width:0;font-size:13px;padding:9px 11px}#gs{top:34px}}
 </style></head><body>
 <canvas id=c></canvas><div id=vg></div><div id=fl></div><div id=ov></div>
 <div id=hud hidden><div id=xh></div><div id=tl></div><div id=wp></div><div id=hp></div><div id=gs></div><div id=log></div><input id=ci maxlength=120 placeholder="Say something… (Enter)" hidden><div id=pl hidden></div><div id=hitMarker></div>
@@ -191,14 +228,43 @@ const PT={crate:{s:[1.2,1.2,1.2],m:60,tex:'crate'},barrel:{s:[.9,1.3,.9],m:40,te
 let curProp='crate',curCol='#ff8a3d',pid=0;
 function vehicleBox(parent,size,color,position){const m=new THREE.Mesh(new THREE.BoxGeometry(...size),new THREE.MeshStandardMaterial({color,metalness:.35,roughness:.4}));m.position.set(...position);m.castShadow=m.receiveShadow=true;parent.add(m);return m}
 function vehicleNetId(){return String(myPeer||myId||'local')+'-'+(++vehicleId)}
+function vehicleGlow(parent,color,position,size=[.22,.08,.08]){
+  const mat=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:2.8,roughness:.2,metalness:.1,transparent:true,opacity:.94});
+  const m=new THREE.Mesh(new THREE.BoxGeometry(...size),mat);m.position.set(...position);m.castShadow=false;m.receiveShadow=false;parent.add(m);return m;
+}
+function vehicleTrim(parent,size,position,rotation=[0,0,0],color=0x11161c){
+  const m=new THREE.Mesh(new THREE.BoxGeometry(...size),new THREE.MeshStandardMaterial({color,metalness:.55,roughness:.28}));
+  m.position.set(...position);m.rotation.set(...rotation);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m;
+}
 function createVehicle(typeId,position,owner=myPeer||myId,id){
   const spec=VEHICLE_TYPES.find(v=>v.id===typeId); if(!spec)return null;
   const group=new THREE.Group(),paint=spec.color,dark=0x171b20,glass=0x85d8e8,accent=0xf0b63b,halfW=spec.w/2,halfL=spec.l/2;
   if(spec.kind=='bike'){vehicleBox(group,[.52,.34,spec.l*.62],paint,[0,.82,0]);vehicleBox(group,[.48,.16,.62],dark,[0,1.04,.18]);vehicleBox(group,[.12,.72,.13],accent,[0,.92,-.78]);vehicleBox(group,[.78,.08,.12],dark,[0,1.2,-.9])}
   else{vehicleBox(group,[spec.w,.45,spec.l],paint,[0,.65,0]);if(spec.kind=='car'){vehicleBox(group,[spec.w*.72,.62,spec.l*.38],glass,[0,1.13,-.15]);vehicleBox(group,[spec.w*.84,.2,spec.l*.3],paint,[0,1.1,.55])}else if(spec.kind=='truck'||spec.kind=='van'){vehicleBox(group,[spec.w*.76,.92,spec.l*.4],glass,[0,1.3,-.35]);if(spec.kind=='truck')vehicleBox(group,[spec.w*.85,.4,spec.l*.38],dark,[0,.88,1.18])}else if(spec.kind=='kart'){vehicleBox(group,[spec.w*.52,.5,spec.l*.38],dark,[0,1.02,-.12]);vehicleBox(group,[.12,.65,.12],accent,[0,1.22,-.68])}else{vehicleBox(group,[spec.w*.64,.3,spec.l*.34],dark,[0,.99,-.2]);vehicleBox(group,[.12,.5,.12],accent,[0,1.17,-.74])}}
+  const frontZ=-halfL*.49, rearZ=halfL*.49;
+  if(spec.kind!=='bike'){
+    vehicleTrim(group,[spec.w*.86,.11,.12],[0,.43,frontZ+.03],[0,0,0],0x11161b);
+    vehicleTrim(group,[spec.w*.86,.10,.12],[0,.42,rearZ-.03],[0,0,0],0x11161b);
+    vehicleGlow(group,0xfff4c7,[-halfW*.28,.63,frontZ],[spec.w*.18,.10,.06]);
+    vehicleGlow(group,0xfff4c7,[ halfW*.28,.63,frontZ],[spec.w*.18,.10,.06]);
+    vehicleGlow(group,0xff4a4f,[-halfW*.29,.63,rearZ],[spec.w*.16,.09,.05]);
+    vehicleGlow(group,0xff4a4f,[ halfW*.29,.63,rearZ],[spec.w*.16,.09,.05]);
+    vehicleTrim(group,[spec.w*.42,.12,.08],[0,.48,0]);
+    if(spec.kind==='car'||spec.kind==='van') vehicleTrim(group,[.10,.28,spec.l*.30],[-spec.w*.34,1.06,-.15],[0,0,.02],0x242c34);
+    if(spec.kind==='car'||spec.kind==='van') vehicleTrim(group,[.10,.28,spec.l*.30],[ spec.w*.34,1.06,-.15],[0,0,-.02],0x242c34);
+  }else{
+    vehicleGlow(group,0xfff4c7,[0,.86,-halfL*.74],[.20,.08,.05]);
+    vehicleGlow(group,0xff4a4f,[0,.86,halfL*.74],[.20,.08,.05]);
+  }
   const wheelMat=new THREE.MeshStandardMaterial({color:dark,roughness:.86}),wheels=[];
   const positions=spec.kind=='bike'?[[0,.43,-halfL*.74],[0,.43,halfL*.74]]:[[-halfW*.8,.37,-halfL*.68],[halfW*.8,.37,-halfL*.68],[-halfW*.8,.37,halfL*.68],[halfW*.8,.37,halfL*.68]];
-  for(const [x,y,z]of positions){const wheel=new THREE.Mesh(new THREE.TorusGeometry(spec.wheel*.72,spec.wheel*.28,10,18),wheelMat);wheel.rotation.y=PI/2;wheel.position.set(x,y,z);wheel.castShadow=true;group.add(wheel);wheels.push(wheel)}
+  for(const [x,y,z]of positions){
+    const wheel=new THREE.Mesh(new THREE.TorusGeometry(spec.wheel*.72,spec.wheel*.28,10,18),wheelMat);
+    wheel.rotation.y=PI/2;wheel.position.set(x,y,z);wheel.castShadow=true;group.add(wheel);
+    const rim=new THREE.Mesh(new THREE.CylinderGeometry(spec.wheel*.44,spec.wheel*.44,.10,16),new THREE.MeshStandardMaterial({color:0x9aa6b2,metalness:.8,roughness:.25}));
+    rim.rotation.z=PI/2;rim.position.set(x,y,z);rim.castShadow=true;group.add(rim);
+    wheels.push(wheel);
+  }
   sc.add(group);
   const local=owner===myPeer||owner===myId;
   const body=new CANNON.Body({mass:spec.kind=='bike'?115:380,material:DM,linearDamping:.22,angularDamping:.92});
@@ -793,7 +859,10 @@ BOTS.forEach(o=>botAI(o,dt));if(isH())hostTick(dt);
 for(let i=fx.length-1;i>=0;i--){const f=fx[i];f.t+=dt;const k=f.t/(f.life||.45);if(f.kind=='particle'){f.m.position.addScaledVector(f.v,dt);f.v.multiplyScalar(Math.pow(.05,dt));f.v.y-=dt*5;f.m.scale.setScalar(1+Math.max(0,k)*1.8);f.m.material.opacity=Math.max(0,1-k)}else if(f.kind=='tracer'){f.m.material.opacity=Math.max(0,1-k)}else if(f.kind=='muzzle'){f.m.scale.setScalar(1+Math.sin(k*PI)*3);f.m.material.opacity=Math.max(0,1-k)}else if(f.kind=='blast'){f.m.scale.setScalar(1+k*10);f.m.material.opacity=Math.max(0,.9-k*1.3);f.ring.scale.setScalar(1+k*9);f.ring.material.opacity=Math.max(0,.9-k);f.light.intensity=Math.max(0,8*(1-k));f.light.distance=18+k*12}if(f.t>=(f.life||.45)){sc.remove(f.m);if(f.ring)sc.remove(f.ring);if(f.light)sc.remove(f.light);if(f.m.geometry)f.m.geometry.dispose();if(f.m.material)f.m.material.dispose();fx.splice(i,1)}}
 for(const r of RM.values()){r.g.position.x+=(r.tx-r.g.position.x)*Math.min(1,dt*12);r.g.position.y+=(r.ty-r.g.position.y)*Math.min(1,dt*12);r.g.position.z+=(r.tz-r.g.position.z)*Math.min(1,dt*12);r.g.rotation.y=r.yaw}
 pt-=dt;if(room&&code&&pt<=0){pt=.06;room.presence({x:+pb.position.x.toFixed(2),y:+(pb.position.y-.6).toFixed(2),z:+pb.position.z.toFixed(2),yaw:+yaw.toFixed(2),dg:myDg||null,bomb:bombHolder===myPeer}).catch(()=>{})}
-cam.fov+=((zoom?22:75)-cam.fov)*Math.min(1,dt*12);cam.updateProjectionMatrix();
+const vehicleSpeed=drivenVehicle?Math.abs(drivenVehicle.speed):0;
+const targetFov=zoom?22:(drivenVehicle?75+Math.min(10,vehicleSpeed*.18):75);
+cam.fov+=(targetFov-cam.fov)*Math.min(1,dt*(drivenVehicle?8:12));cam.updateProjectionMatrix();
+vg.style.opacity=String(drivenVehicle?Math.min(.96,.78+vehicleSpeed/120):1);
 const reloadP=rl>0?1-rl/1.35:0,reloadArc=rl>0?Math.sin(reloadP*PI):0;vm.visible=cameraMode===0&&!zoom;VMS.forEach((g,i)=>g.visible=vm.visible&&i==cw);vm.position.set(.28+(rl>0?Math.sin(reloadP*PI*2)*.1:0),-.26-(rl>0?.1+reloadArc*.16:0),-.55+kick*2.5+(rl>0?reloadArc*.08:0));vm.rotation.set(kick*3-(rl>0?reloadArc*.9:0),rl>0?Math.sin(reloadP*PI*2)*.45:0,rl>0?-.18*reloadArc:0);fl.visible=fon;fl.intensity=2.6;
 const propLocked=GM=='ph'&&propRotationLock&&phRotationLocked&&myDg&&myPeer!==PH.k&&PH.ph=='hide';if(propLocked){yaw=disguiseYaw;pitch=Math.max(-1.1,Math.min(1.1,pitch))}
 const camDist=0;const back=new V3(),eyeY=crawl?.42:.85;
@@ -813,7 +882,7 @@ if (nc) weaponInfo += ' 👻';
 wp$.textContent = weaponInfo;
 
 // Enhanced tool HUD with more context
-let toolInfo = drivenVehicle?drivenVehicle.spec.name+' · WASD drive · Space brake · E exit':'';
+let toolInfo = drivenVehicle?drivenVehicle.spec.name+' · '+Math.round(Math.abs(drivenVehicle.speed)*2.237)+' MPH · WASD drive · Space brake · E exit':'';
 if (!drivenVehicle&&cw === 1) { // Toolgun
   toolInfo = `TOOL: ${TM[tm]}`;
   if (sel) toolInfo += ' 🎯';
