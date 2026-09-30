@@ -80,12 +80,14 @@ wss.on('connection', ws => {
     let m; try { m=JSON.parse(raw); } catch { return; }
 
     if (m.t==='p' && m.p && typeof m.p==='object') {
+      const previousCode=typeof me.p.code==='string'?me.p.code:'';
       for (const k in m.p) {
         if (m.p[k]===null) delete me.p[k];
         else me.p[k]=m.p[k];
       }
-      if (typeof m.p.code==='string' && m.p.code) {
-        const room=vehicles.get(m.p.code);
+      const nextCode=typeof me.p.code==='string'?me.p.code:'';
+      if (nextCode && nextCode!==previousCode) {
+        const room=vehicles.get(nextCode);
         if (room) for (const state of room.values()) {
           const out={...state,e:'spawn'}; delete out.owner; delete out.ts;
           send(me,{t:'e',topic:'vehicle',data:out,peer:state.owner});
