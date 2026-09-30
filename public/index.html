@@ -190,36 +190,113 @@ if(M.gt){gnd(M.gt,M.gc);fence(M.ft||M.gt)}M.b();buildNav();if(typeof pb!=='undef
 const PT={crate:{s:[1.2,1.2,1.2],m:60,tex:'crate'},barrel:{s:[.9,1.3,.9],m:40,tex:'barrel',cyl:1},ball:{r:.6,m:20,tex:'checker'},plank:{s:[4,.25,.9],m:30,tex:'wood'},pillar:{s:[.7,3.5,.7],m:70,tex:'concrete'},cube:{s:[2.2,2.2,2.2],m:150,tex:'brick'},cone:{s:[.85,1.5,.85],m:18,tex:'barrel',cone:1},tire:{s:[1.35,.42,1.35],m:28,tex:'rubber',tire:1},chair:{s:[1.2,1.8,1.2],m:42,tex:'wood',chair:1},monitor:{s:[1.6,1.15,.4],m:35,tex:'metal',monitor:1}};
 let curProp='crate',curCol='#ff8a3d',pid=0;
 function vehicleBox(parent,size,color,position){const m=new THREE.Mesh(new THREE.BoxGeometry(...size),new THREE.MeshStandardMaterial({color,metalness:.35,roughness:.4}));m.position.set(...position);m.castShadow=m.receiveShadow=true;parent.add(m);return m}
-function createVehicle(typeId,position,owner=myPeer||myId,id){const spec=VEHICLE_TYPES.find(v=>v.id===typeId);if(!spec)return null;const group=new THREE.Group(),paint=spec.color,dark=0x171b20,glass=0x85d8e8,accent=0xf0b63b;const halfW=spec.w/2,halfL=spec.l/2;
-if(spec.kind=='bike'){vehicleBox(group,[.52,.34,spec.l*.62],paint,[0,.82,0]);vehicleBox(group,[.48,.16,.62],dark,[0,1.04,.18]);vehicleBox(group,[.12,.72,.13],accent,[0,.92,-.78]);vehicleBox(group,[.78,.08,.12],dark,[0,1.2,-.9])}
-else{vehicleBox(group,[spec.w,.45,spec.l],paint,[0,.65,0]);if(spec.kind=='car'){vehicleBox(group,[spec.w*.72,.62,spec.l*.38],glass,[0,1.13,-.15]);vehicleBox(group,[spec.w*.84,.2,spec.l*.3],paint,[0,1.1,.55])}else if(spec.kind=='truck'||spec.kind=='van'){vehicleBox(group,[spec.w*.76,.92,spec.l*.4],glass,[0,1.3,-.35]);if(spec.kind=='truck')vehicleBox(group,[spec.w*.85,.4,spec.l*.38],dark,[0,.88,1.18])}else if(spec.kind=='kart'){vehicleBox(group,[spec.w*.52,.5,spec.l*.38],dark,[0,1.02,-.12]);vehicleBox(group,[.12,.65,.12],accent,[0,1.22,-.68])}else{vehicleBox(group,[spec.w*.64,.3,spec.l*.34],dark,[0,.99,-.2]);vehicleBox(group,[.12,.5,.12],accent,[0,1.17,-.74])}}
-const wheelMat=new THREE.MeshStandardMaterial({color:dark,roughness:.86}),wheels=[];const positions=spec.kind=='bike'?[[0,.43,-halfL*.74],[0,.43,halfL*.74]]:[[-halfW*.8,.37,-halfL*.68],[halfW*.8,.37,-halfL*.68],[-halfW*.8,.37,halfL*.68],[halfW*.8,.37,halfL*.68]];for(const [x,y,z]of positions){const wheel=new THREE.Mesh(new THREE.TorusGeometry(spec.wheel*.72,spec.wheel*.28,10,18),wheelMat);wheel.rotation.y=PI/2;wheel.position.set(x,y,z);wheel.castShadow=true;group.add(wheel);wheels.push(wheel)}
-sc.add(group);const body=new CANNON.Body({mass:spec.kind=='bike'?115:380,material:DM,linearDamping:.22,angularDamping:.92});body.addShape(new CANNON.Box(new CANNON.Vec3(halfW*.46,.3,halfL*.42)));body.position.set(position.x,Math.max(.3,position.y),position.z);const local=owner===myPeer||owner===myId;if(!local){body.mass=0;body.type=CANNON.Body.KINEMATIC}body.updateMassProperties();world.add(body);const v={id:id||'v'+(++vehicleId),type:typeId,spec,owner,body,group,wheels,yaw:0,speed:0,driver:false,target:null,lastSend:0};VEHICLES.push(v);return v}
-function spawnVehicle(typeId,position){const p=position||front(8),spec=VEHICLE_TYPES.find(v=>v.id===typeId);if(!spec)return null;p.y=.3;const v=createVehicle(typeId,p,myPeer||myId);if(v&&room&&code)room.emit('vehicle',{c:code,e:'spawn',id:v.id,t:typeId,x:p.x,y:p.y,z:p.z,yaw:v.yaw}).catch(()=>{});return v}
-function removeVehicle(v){if(!v)return;if(drivenVehicle===v)exitVehicle();world.remove(v.body);sc.remove(v.group);VEHICLES.splice(VEHICLES.indexOf(v),1)}
-function clearVehicles(){drivenVehicle=null;cameraMode=0;VEHICLES.slice().forEach(v=>{if(room&&code&&(v.owner===myPeer||v.owner===myId))room.emit('vehicle',{c:code,e:'remove',id:v.id}).catch(()=>{});removeVehicle(v)})}
-function receiveVehicle(d,owner){if(d.e=='spawn'){if(!VEHICLES.some(v=>v.id===d.id))createVehicle(d.t,{x:+d.x||0,y:+d.y||1,z:+d.z||0},owner,String(d.id||''));return}const v=VEHICLES.find(q=>q.id===d.id);if(!v||v.owner===myPeer||v.owner===myId)return;if(d.e=='move')v.target={x:+d.x||0,y:+d.y||0,z:+d.z||0,yaw:+d.yaw||0,speed:+d.s||0};else if(d.e=='remove')removeVehicle(v)}
+function vehicleNetId(){return String(myPeer||myId||'local')+'-'+(++vehicleId)}
+function createVehicle(typeId,position,owner=myPeer||myId,id){
+  const spec=VEHICLE_TYPES.find(v=>v.id===typeId); if(!spec)return null;
+  const group=new THREE.Group(),paint=spec.color,dark=0x171b20,glass=0x85d8e8,accent=0xf0b63b,halfW=spec.w/2,halfL=spec.l/2;
+  if(spec.kind=='bike'){vehicleBox(group,[.52,.34,spec.l*.62],paint,[0,.82,0]);vehicleBox(group,[.48,.16,.62],dark,[0,1.04,.18]);vehicleBox(group,[.12,.72,.13],accent,[0,.92,-.78]);vehicleBox(group,[.78,.08,.12],dark,[0,1.2,-.9])}
+  else{vehicleBox(group,[spec.w,.45,spec.l],paint,[0,.65,0]);if(spec.kind=='car'){vehicleBox(group,[spec.w*.72,.62,spec.l*.38],glass,[0,1.13,-.15]);vehicleBox(group,[spec.w*.84,.2,spec.l*.3],paint,[0,1.1,.55])}else if(spec.kind=='truck'||spec.kind=='van'){vehicleBox(group,[spec.w*.76,.92,spec.l*.4],glass,[0,1.3,-.35]);if(spec.kind=='truck')vehicleBox(group,[spec.w*.85,.4,spec.l*.38],dark,[0,.88,1.18])}else if(spec.kind=='kart'){vehicleBox(group,[spec.w*.52,.5,spec.l*.38],dark,[0,1.02,-.12]);vehicleBox(group,[.12,.65,.12],accent,[0,1.22,-.68])}else{vehicleBox(group,[spec.w*.64,.3,spec.l*.34],dark,[0,.99,-.2]);vehicleBox(group,[.12,.5,.12],accent,[0,1.17,-.74])}}
+  const wheelMat=new THREE.MeshStandardMaterial({color:dark,roughness:.86}),wheels=[];
+  const positions=spec.kind=='bike'?[[0,.43,-halfL*.74],[0,.43,halfL*.74]]:[[-halfW*.8,.37,-halfL*.68],[halfW*.8,.37,-halfL*.68],[-halfW*.8,.37,halfL*.68],[halfW*.8,.37,halfL*.68]];
+  for(const [x,y,z]of positions){const wheel=new THREE.Mesh(new THREE.TorusGeometry(spec.wheel*.72,spec.wheel*.28,10,18),wheelMat);wheel.rotation.y=PI/2;wheel.position.set(x,y,z);wheel.castShadow=true;group.add(wheel);wheels.push(wheel)}
+  sc.add(group);
+  const local=owner===myPeer||owner===myId;
+  const body=new CANNON.Body({mass:spec.kind=='bike'?115:380,material:DM,linearDamping:.22,angularDamping:.92});
+  body.addShape(new CANNON.Box(new CANNON.Vec3(halfW*.46,.3,halfL*.42)));
+  body.position.set(Number(position.x)||0,Math.max(.3,Number(position.y)||.3),Number(position.z)||0);
+  if(!local){body.mass=0;body.type=CANNON.Body.KINEMATIC}
+  body.updateMassProperties();world.add(body);
+  const v={id:id||vehicleNetId(),type:typeId,spec,owner,body,group,wheels,yaw:0,speed:0,driver:false,target:null,lastSend:0,netSeq:0,netTime:0,rx:body.position.x,ry:body.position.y,rz:body.position.z,rvx:0,rvz:0};
+  group.position.copy(body.position); VEHICLES.push(v); return v;
+}
+function spawnVehicle(typeId,position){
+  const p=position||front(8),spec=VEHICLE_TYPES.find(v=>v.id===typeId);if(!spec)return null;
+  p.y=Math.max(.3,p.y||.3);const v=createVehicle(typeId,p,myPeer||myId,vehicleNetId());
+  if(v&&room&&code)room.emit('vehicle',{c:code,e:'spawn',id:v.id,t:typeId,x:p.x,y:p.y,z:p.z,yaw:v.yaw}).catch(()=>{});
+  return v;
+}
+function removeVehicle(v){if(!v)return;if(drivenVehicle===v)exitVehicle();world.remove(v.body);sc.remove(v.group);const i=VEHICLES.indexOf(v);if(i>=0)VEHICLES.splice(i,1)}
+function clearVehicles(){
+  const localOwner=myPeer||myId;
+  VEHICLES.slice().forEach(v=>{
+    if(room&&code&&v.owner===localOwner)room.emit('vehicle',{c:code,e:'remove',id:v.id}).catch(()=>{});
+    removeVehicle(v);
+  });
+  drivenVehicle=null;cameraMode=0;
+}
+function receiveVehicle(d,owner){
+  if(!d||!d.id||!d.e)return;
+  if(d.e==='spawn'){
+    if(VEHICLES.some(v=>v.id===String(d.id)))return;
+    const v=createVehicle(String(d.t||''),{x:Number(d.x)||0,y:Number(d.y)||1,z:Number(d.z)||0},owner,String(d.id));
+    if(v){v.yaw=Number(d.yaw)||0;v.body.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),v.yaw);v.group.rotation.y=v.yaw}
+    return;
+  }
+  const v=VEHICLES.find(q=>q.id===String(d.id)); if(!v||v.owner===myPeer||v.owner===myId)return;
+  if(d.e==='move'){
+    const seq=Number(d.seq)||0;if(seq&&seq<=v.netSeq)return;
+    const x=Number(d.x),y=Number(d.y),z=Number(d.z),yaw=Number(d.yaw),speed=Number(d.s)||0;
+    if(![x,y,z,yaw].every(Number.isFinite))return;
+    const nowMs=performance.now(),dt=Math.max(.016,(nowMs-v.netTime)/1000);
+    v.netSeq=seq||v.netSeq+1;v.netTime=nowMs;v.rx=x;v.ry=y;v.rz=z;
+    v.rvx=(x-v.body.position.x)/dt;v.rvz=(z-v.body.position.z)/dt;v.speed=speed;
+    v.target={x,y,z,yaw,speed};
+  }else if(d.e==='remove')removeVehicle(v);
+}
 function enterVehicle(v){if(!v||drivenVehicle)return;drivenVehicle=v;v.driver=true;cameraMode=1;playSound('physPickup',.35);if(GM=='race')raceProgress=0}
 function tryEnterVehicle(){if(drivenVehicle)return;let best=null,distance=4;for(const v of VEHICLES){if(v.owner!==myPeer&&v.owner!==myId)continue;const d=pb.position.distanceTo(v.body.position);if(d<distance){distance=d;best=v}}if(best)enterVehicle(best)}
 function exitVehicle(){if(!drivenVehicle)return;const v=drivenVehicle;v.driver=false;pb.position.set(v.body.position.x+Math.cos(v.yaw)*1.5,v.body.position.y+.7,v.body.position.z-Math.sin(v.yaw)*1.5);pb.velocity.set(v.body.velocity.x,0,v.body.velocity.z);drivenVehicle=null;cameraMode=0}
-function vehicleTick(dt){for(const v of VEHICLES){const b=v.body;if(v.owner===myPeer||v.owner===myId){if(v===drivenVehicle){const throttle=(keys.KeyW?1:0)-(keys.KeyS?1:0),steer=(keys.KeyD?1:0)-(keys.KeyA?1:0);v.speed+=throttle*v.spec.accel*dt;if(!throttle)v.speed*=Math.max(0,1-dt*.42);if(keys.Space)v.speed*=Math.max(0,1-dt*3.5);v.speed=Math.max(-v.spec.speed*.35,Math.min(v.spec.speed,v.speed));v.yaw+=steer*v.spec.turn*dt*Math.min(1,Math.abs(v.speed)/4)*(v.speed<0?-1:1);b.velocity.x=-Math.sin(v.yaw)*v.speed;b.velocity.z=-Math.cos(v.yaw)*v.speed;b.angularVelocity.set(0,0,0);b.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),v.yaw);pb.position.set(b.position.x,b.position.y+1.1,b.position.z);pb.velocity.set(0,0,0);yaw=v.yaw;if(GM=='race'&&racePhase=='active'){const g=RACE_GATES[raceProgress];if(g&&Math.hypot(b.position.x-g[0],b.position.z-g[1])<8){raceProgress++;if(raceProgress>=RACE_GATES.length){raceProgress=0;if(code&&room)room.emit('race',{c:code,e:'finish'}).catch(()=>{});else finishRace(myPeer||myId)}}}vehicleSync-=dt;if(room&&code&&vehicleSync<=0){vehicleSync=.08;room.emit('vehicle',{c:code,e:'move',id:v.id,x:+b.position.x.toFixed(2),y:+b.position.y.toFixed(2),z:+b.position.z.toFixed(2),yaw:+v.yaw.toFixed(3),s:+v.speed.toFixed(2)}).catch(()=>{})}}}else if(v.target){b.position.x+=(v.target.x-b.position.x)*Math.min(1,dt*12);b.position.y+=(v.target.y-b.position.y)*Math.min(1,dt*12);b.position.z+=(v.target.z-b.position.z)*Math.min(1,dt*12);v.yaw=v.target.yaw;v.speed=v.target.speed;b.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),v.yaw)}
-const suspensionStiffness=200,suspensionDamping=40,restHeight=.85;
-const wheelPositions=v.spec.kind==='bike'?[[0,.43,-v.spec.l*.37],[0,.43,v.spec.l*.37]]:[[-v.spec.w*.4,.37,-v.spec.l*.34],[v.spec.w*.4,.37,-v.spec.l*.34],[-v.spec.w*.4,.37,v.spec.l*.34],[v.spec.w*.4,.37,v.spec.l*.34]];
-if(!v.suspension)v.suspension=wheelPositions.map(()=>({compression:0,velocity:0}));
-wheelPositions.forEach((wheelPos,i)=>{
-const worldPos=new CANNON.Vec3(b.position.x+wheelPos[0]*Math.cos(v.yaw)-wheelPos[2]*Math.sin(v.yaw),b.position.y+wheelPos[1],b.position.z+wheelPos[0]*Math.sin(v.yaw)+wheelPos[2]*Math.cos(v.yaw));
-const rayEnd=new CANNON.Vec3(worldPos.x,worldPos.y-2,worldPos.z),result=new CANNON.RaycastResult();
-world.raycastClosest(worldPos,rayEnd,{collisionFilterMask:-1,skipBackfaces:true},result);
-const compression=result.hasHit?Math.max(0,Math.min(restHeight,restHeight-result.distance)):0;
-const force=Math.max(0,suspensionStiffness*compression-suspensionDamping*v.suspension[i].velocity);
-b.applyForce(new CANNON.Vec3(0,force,0),new CANNON.Vec3(wheelPos[0],wheelPos[1],wheelPos[2]));
-v.suspension[i].velocity=(compression-v.suspension[i].compression)/Math.max(dt,.001);v.suspension[i].compression=compression;
-});
-
-// Update vehicle graphics
-v.group.position.copy(b.position);
-v.group.rotation.y=v.yaw;
-v.wheels.forEach(w=>w.rotation.x+=v.speed*dt/v.spec.wheel);}}
+function vehicleTick(dt){
+  for(const v of VEHICLES){
+    const b=v.body,local=v.owner===myPeer||v.owner===myId;
+    if(local&&v===drivenVehicle){
+      const throttle=(keys.KeyW?1:0)-(keys.KeyS?1:0),steer=(keys.KeyD?1:0)-(keys.KeyA?1:0);
+      v.speed+=throttle*v.spec.accel*dt;
+      if(!throttle)v.speed*=Math.max(0,1-dt*.42);
+      if(keys.Space)v.speed*=Math.max(0,1-dt*3.5);
+      v.speed=Math.max(-v.spec.speed*.35,Math.min(v.spec.speed,v.speed));
+      v.yaw+=steer*v.spec.turn*dt*Math.min(1,Math.abs(v.speed)/4)*(v.speed<0?-1:1);
+      b.velocity.x=-Math.sin(v.yaw)*v.speed;b.velocity.z=-Math.cos(v.yaw)*v.speed;b.angularVelocity.set(0,0,0);
+      b.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),v.yaw);
+      pb.position.set(b.position.x,b.position.y+1.1,b.position.z);pb.velocity.set(0,0,0);yaw=v.yaw;
+      if(GM=='race'&&racePhase=='active'){
+        const g=RACE_GATES[raceProgress];
+        if(g&&Math.hypot(b.position.x-g[0],b.position.z-g[1])<8){raceProgress++;if(raceProgress>=RACE_GATES.length){raceProgress=0;if(code&&room)room.emit('race',{c:code,e:'finish'}).catch(()=>{});else finishRace(myPeer||myId)}}
+      }
+      vehicleSync-=dt;
+      if(room&&code&&vehicleSync<=0){
+        vehicleSync=.065;
+        room.emit('vehicle',{c:code,e:'move',id:v.id,x:+b.position.x.toFixed(3),y:+b.position.y.toFixed(3),z:+b.position.z.toFixed(3),yaw:+v.yaw.toFixed(4),s:+v.speed.toFixed(3)}).catch(()=>{});
+      }
+    }else if(!local&&v.target){
+      const age=Math.min(.25,Math.max(0,(performance.now()-v.netTime)/1000));
+      const ex=v.target.x+v.rvx*age*.35,ez=v.target.z+v.rvz*age*.35;
+      const k=1-Math.exp(-dt*18);
+      b.position.x+=(ex-b.position.x)*k;b.position.y+=(v.target.y-b.position.y)*k;b.position.z+=(ez-b.position.z)*k;
+      let dy=v.target.yaw-v.yaw;while(dy>Math.PI)dy-=Math.PI*2;while(dy<-Math.PI)dy+=Math.PI*2;
+      v.yaw+=dy*(1-Math.exp(-dt*20));
+      b.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),v.yaw);
+    }
+    if(local||v===drivenVehicle){
+      const suspensionStiffness=200,suspensionDamping=40,restHeight=.85;
+      const wheelPositions=v.spec.kind==='bike'?[[0,.43,-v.spec.l*.37],[0,.43,v.spec.l*.37]]:[[-v.spec.w*.4,.37,-v.spec.l*.34],[v.spec.w*.4,.37,-v.spec.l*.34],[-v.spec.w*.4,.37,v.spec.l*.34],[v.spec.w*.4,.37,v.spec.l*.34]];
+      if(!v.suspension)v.suspension=wheelPositions.map(()=>({compression:0,velocity:0}));
+      wheelPositions.forEach((wheelPos,i)=>{
+        const cy=Math.cos(v.yaw),sy=Math.sin(v.yaw);
+        const worldPos=new CANNON.Vec3(b.position.x+wheelPos[0]*cy-wheelPos[2]*sy,b.position.y+wheelPos[1],b.position.z+wheelPos[0]*sy+wheelPos[2]*cy);
+        const rayEnd=new CANNON.Vec3(worldPos.x,worldPos.y-2,worldPos.z),result=new CANNON.RaycastResult();
+        world.raycastClosest(worldPos,rayEnd,{collisionFilterMask:-1,skipBackfaces:true},result);
+        const compression=result.hasHit?Math.max(0,Math.min(restHeight,restHeight-result.distance)):0;
+        const force=Math.max(0,suspensionStiffness*compression-suspensionDamping*v.suspension[i].velocity);
+        if(force&&b.type===CANNON.Body.DYNAMIC)b.applyForce(new CANNON.Vec3(0,force,0),new CANNON.Vec3(wheelPos[0],wheelPos[1],wheelPos[2]));
+        v.suspension[i].velocity=(compression-v.suspension[i].compression)/Math.max(dt,.001);v.suspension[i].compression=compression;
+      });
+    }
+    b.quaternion.setFromAxisAngle(new CANNON.Vec3(0,1,0),v.yaw);
+    v.group.position.copy(b.position);v.group.rotation.y=v.yaw;
+    v.wheels.forEach(w=>w.rotation.x+=v.speed*dt/Math.max(.1,v.spec.wheel));
+  }
+}
 function decorateProp(m,t){const accent=new THREE.MeshStandardMaterial({color:t=='barrel'?0x1f2937:t=='pillar'?0xb6bec8:0x4b2d18,roughness:.38,metalness:t=='pillar'?.55:.15});let parts=[];
 if(t=='crate'){for(const z of[-.61,.61]){const q=new THREE.Mesh(new THREE.BoxGeometry(.12,1.05,.08),accent);q.position.set(0,0,z);parts.push(q)}for(const x of[-.61,.61]){const q=new THREE.Mesh(new THREE.BoxGeometry(.08,1.05,.12),accent);q.position.set(x,0,0);parts.push(q)}}
 if(t=='barrel'){for(const y of[-.43,.43]){const q=new THREE.Mesh(new THREE.TorusGeometry(.43,.045,8,18),accent);q.rotation.x=PI/2;q.position.y=y;parts.push(q)}}
