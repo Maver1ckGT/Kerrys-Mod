@@ -898,5 +898,7 @@ if(state=='play')update(dt);else{orb+=dt*.12;cam.fov=75;cam.position.set(Math.co
 rd.render(sc,cam)}
 MAPS.forEach((m,i)=>$('mp').add(new Option((i+1)+'. '+m.n,i)));loadMap(0);requestAnimationFrame(loop);initNet();
 </script>
+<script src="gamemodes.js"></script>
+<script src="gamemodes-init.js"></script>
 </body>
 </html>
