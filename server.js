@@ -42,7 +42,8 @@ function vehicleEvent(me, data) {
     if (state && state.owner !== me.id) return;
     const x=Number(data.x), y=Number(data.y), z=Number(data.z), yaw=Number(data.yaw);
     if (![x,y,z,yaw].every(Number.isFinite) || typeof data.t !== 'string') return;
-    state = { c:code, id, e:'spawn', t:data.t.slice(0,24), x,y,z,yaw, s:0, vx:0, vz:0, seq:++vehicleSeq, owner:me.id, ts:Date.now() };
+    const map=Number.isInteger(data.m)?data.m:0;
+    state = { c:code, m:map, id, e:'spawn', t:data.t.slice(0,24), x,y,z,yaw, s:0, vx:0, vz:0, seq:++vehicleSeq, owner:me.id, ts:Date.now() };
     room.set(id,state);
     const out={...state}; delete out.owner; delete out.ts;
     bc({t:'e',topic:'vehicle',data:out,peer:me.id},me);
@@ -58,11 +59,11 @@ function vehicleEvent(me, data) {
     const dt=Math.max(.016,Math.min(.25,(ts-state.ts)/1000));
     state.vx=(x-state.x)/dt; state.vz=(z-state.z)/dt;
     state.x=x;state.y=y;state.z=z;state.yaw=yaw;state.s=s;state.seq=++vehicleSeq;state.ts=ts;
-    const out={c:code,e:'move',id,x,y,z,yaw,s,seq:state.seq,ts};
+    const out={c:code,m:state.m,e:'move',id,x,y,z,yaw,s,seq:state.seq,ts};
     bc({t:'e',topic:'vehicle',data:out,peer:me.id},me);
   } else {
     room.delete(id);
-    bc({t:'e',topic:'vehicle',data:{c:code,e:'remove',id,seq:++vehicleSeq},peer:me.id},me);
+    bc({t:'e',topic:'vehicle',data:{c:code,m:state.m,e:'remove',id,seq:++vehicleSeq},peer:me.id},me);
     if (!room.size) vehicles.delete(code);
   }
 }
@@ -90,6 +91,7 @@ wss.on('connection', ws => {
         const room=vehicles.get(nextCode);
         if (room) for (const state of room.values()) {
           const out={...state,e:'spawn'}; delete out.owner; delete out.ts;
+          if (Number.isInteger(m.p.map) && state.m!==m.p.map) continue;
           send(me,{t:'e',topic:'vehicle',data:out,peer:state.owner});
         }
       }
