@@ -216,6 +216,73 @@ for(let y=0;y<N;y++){let a=-1;for(let x=0;x<=N;x++){const w=x<N&&G[y][x];if(w&&a
 {n:'Toy Box',gt:'tile',ft:'checker',sky:['#ff9ad5','#ffd6f0','#fff4d6'],fog:'#ffe3f2',fd:.004,b(){for(let i=0;i<40;i++){const q=3+rnd()*7;sbox([rnd()*140-70,q/2,rnd()*100-75],[q,q,q],['crate','checker','brick','wood'][i%4],[0,rnd()*3,0],PAL[i%5])}for(let k=0;k<6;k++)sbox([-40+k*4,(k+1)*.6,-30],[4,(k+1)*1.2,8],'checker',[0,0,0],PAL[k%5]);ramp([20,0,20],[20,7,0],8,'wood')}},
 {n:'Race Circuit',race:1,gt:'grass',sp:[-5,1,63],sky:['#17243e','#9db7cc','#e8edf0'],fog:'#cbd9df',fd:.004,b(){for(const p of [[0,.13,-54],[0,.13,54],[-54,.13,0],[54,.13,0]])sbox(p,[p[0]?18:126,.26,p[0]?126:18],'rock',[0,0,0],0x343a3e);for(let x=-54;x<=54;x+=9){dbox([x,.27,-54],[.35,.035,.16],'metal',0xf4dc78);dbox([x,.27,54],[.35,.035,.16],'metal',0xf4dc78)}for(let z=-45;z<=45;z+=9){dbox([-54,.27,z],[.16,.035,.35],'metal',0xf4dc78);dbox([54,.27,z],[.16,.035,.35],'metal',0xf4dc78)}for(const [x,z] of [[0,-54],[0,54],[-54,0],[54,0]]){sbox([x,5,z-9],[.5,10,.5],'metal');sbox([x,5,z+9],[.5,10,.5],'metal');sbox([x,10,z],[19,.6,.6],'neon',[0,0,0],0xff9d38)}for(let x=-8;x<=8;x+=2)sbox([x,.29,54],[1,.04,18],'checker',[0,0,0],x%4?0xf4f1e8:0xf05a4f)}}
 ];
+
+// Requested 15-map roster override. Legacy map indices stay stable for networking.
+(() => {
+  const set=(i,n,o)=>Object.assign(MAPS[i],{n,...o});
+  set(0,"Kerry's Construct",{sp:[0,2,32]});
+  set(1,"Flatgrass",{sp:[0,2,30]});
+  set(2,"Office",{gt:'tile',sp:[0,1.4,42],sky:['#394d5b','#8b9fa8','#dbe8ed'],fog:'#aebcc2',fd:.006,b(){
+    sbox([0,-.1,0],[150,.2,150],'concrete');sbox([0,5,-52],[90,10,3],'brick');sbox([-45,5,0],[3,10,104],'brick');sbox([45,5,0],[3,10,104],'brick');
+    for(let x=-30;x<=30;x+=15)for(let z=-32;z<=32;z+=16){sbox([x,1.1,z],[5,.8,3],'wood');dbox([x,2.25,z],[2.2,1.1,.1],'metal',0x6ecde3)}
+    for(let z=-16;z<=16;z+=16)sbox([0,4,z],[2,8,48],'brick');sbox([-20,4,0],[2,8,40],'brick');sbox([20,4,0],[2,8,40],'brick');
+  }});
+  set(3,"Warehouse",{gt:'concrete',sp:[0,1.5,46],sky:['#2b3740','#6e7a82','#b9c7cd'],fog:'#87959a',fd:.008,b(){
+    sbox([0,-.1,0],[150,.2,150],'concrete');for(let x=-45;x<=45;x+=30){sbox([x,7,-44],[26,14,2],'metal');sbox([x,7,44],[26,14,2],'metal')}
+    for(let x=-45;x<=45;x+=15)for(let z=-28;z<=28;z+=14){sbox([x,1.5,z],[8,3,5],'wood');sbox([x,4.8,z],[7,.3,5],'metal')}
+    for(let x=-60;x<=60;x+=20){sbox([x,4,-36],[2,8,2],'brick');sbox([x,4,36],[2,8,2],'brick')}
+  }});
+  set(4,"Mansion",{gt:'wood',sp:[0,1.5,44],sky:['#282c42','#7d7184','#d6b89a'],fog:'#7f7885',fd:.006,b(){
+    sbox([0,0,0],[82,1,82],'wood');sbox([0,5,-40],[82,10,2],'brick');sbox([-40,5,0],[2,10,82],'brick');sbox([40,5,0],[2,10,82],'brick');
+    sbox([-20,5,0],[2,10,56],'brick');sbox([20,5,0],[2,10,56],'brick');sbox([0,5,-12],[40,10,2],'brick');sbox([0,5,30],[40,10,2],'brick');
+    sbox([0,10,0],[82,1,82],'wood');for(let x=-30;x<=30;x+=15)for(let z=-30;z<=30;z+=15)dbox([x,1.7,z],[3,.12,3],'tile',0x8e6b58);
+  }});
+  set(5,"Docks",{gt:'concrete',sp:[-52,1.2,42],sky:['#17334a','#6aa4c1','#cfe5ef'],fog:'#8fb5c6',fd:.006,b(){
+    sbox([0,-.1,0],[150,.2,150],'concrete');dbox([0,.02,-38],[132,.04,26],'ice',0x2b6376);
+    const cc=[0x9b5a37,0x4f79a5,0x6a8f51,0xd5a43c];for(let i=0;i<12;i++){const x=-44+(i%4)*29,z=(i<4?-18:i<8?6:30);sbox([x,2.2,z],[11,4.4,8],'metal',[0,0,0],cc[i%cc.length])}
+    for(let x=-60;x<=60;x+=20){sbox([x,4,50],[3,8,3],'metal');sbox([x,4,58],[3,8,3],'metal')}
+  }});
+  set(6,"Bunker",{gt:'rock',sp:[0,1.5,46],sky:['#0b0f12','#1d262c','#46525a'],fog:'#30383d',fd:.012,hc:'#73848e',sun:'#93a4ad',si:.55,b(){
+    sbox([0,-.1,0],[150,.2,150],'rock');for(const x of[-42,0,42]){sbox([x,4,-38],[28,8,4],'concrete');sbox([x,4,38],[28,8,4],'concrete')}
+    for(const z of[-18,0,18]){sbox([-42,4,z],[4,8,32],'brick');sbox([42,4,z],[4,8,32],'brick')}
+    for(let x=-30;x<=30;x+=15){sbox([x,1.5,-25],[6,3,6],'concrete');sbox([x,1.5,25],[6,3,6],'concrete');}
+  }});
+  set(7,"Rooftops",{gt:'concrete',sp:[-58,3,-58],sky:['#1f3159','#cc765d','#ffd59d'],fog:'#a78882',fd:.006,sun:'#ffb070',b(){
+    for(let i=0;i<4;i++)for(let j=0;j<4;j++){const x=-45+i*30,z=-45+j*30,h=3+(i+j)*1.6;sbox([x,h/2,z],[18,h,18],'concrete');dbox([x,h+.03,z],[16,.04,16],'metal',0x434b55)}
+    for(let i=0;i<3;i++)ramp([-45+i*30,3,-15],[ -15+i*30,3,15],5,'metal',1);for(let x=-45;x<=45;x+=15)dbox([x,10,0],[.1,.1,7],'neon',0xff9d38);
+  }});
+  set(8,"Backrooms",{gt:'tile',sp:[0,1.3,58],sky:['#5a5a45','#88886c','#b8b89a'],fog:'#85856a',fd:.012,hc:'#c5c27c',sun:'#bcb56e',si:.45,b(){
+    sbox([0,-.1,0],[150,.2,150],'tile');for(let x=-50;x<=50;x+=20){sbox([x,4,-42],[4,8,36],'tile',[0,0,0],0xc4be82);sbox([x,4,42],[4,8,36],'tile',[0,0,0],0xc4be82)}
+    for(let z=-42;z<=42;z+=20){sbox([-50,4,z],[36,8,4],'tile',[0,0,0],0xc4be82);sbox([50,4,z],[36,8,4],'tile',[0,0,0],0xc4be82)}
+  }});
+  set(9,"Mall",{gt:'tile',sp:[0,1.4,58],sky:['#301b42','#795b8d','#c9acd1'],fog:'#66516f',fd:.008,b(){
+    sbox([0,-.1,0],[150,.2,150],'tile');sbox([0,5,-56],[124,10,3],'brick');sbox([-56,5,0],[3,10,124],'brick');sbox([56,5,0],[3,10,124],'brick');
+    for(let x=-45;x<=45;x+=15){sbox([x,4,-26],[11,8,2],'brick');sbox([x,4,26],[11,8,2],'brick');dbox([x,9,-15],[9,.25,2],'neon',0xff4bd8);dbox([x,9,15],[9,.25,2],'neon',0x56d5d8)}
+    for(let x=-45;x<=45;x+=15)for(let z=-35;z<=35;z+=18)sbox([x,1.2,z],[6,2.4,5],(x+z)%30?'wood':'metal');
+  }});
+  set(10,"Asylum",{gt:'concrete',sp:[0,1.4,56],sky:['#182326','#4e6266','#9badad'],fog:'#687778',fd:.012,hc:'#879c9b',sun:'#a8bab5',si:.55,b(){
+    sbox([0,-.1,0],[150,.2,150],'concrete');sbox([0,5,-54],[90,10,3],'brick');sbox([-45,5,0],[3,10,108],'brick');sbox([45,5,0],[3,10,108],'brick');
+    sbox([-18,5,0],[3,10,88],'brick');sbox([18,5,0],[3,10,88],'brick');
+    for(let z=-36;z<=36;z+=12){sbox([-32,2.5,z],[12,5,8],'brick');sbox([32,2.5,z],[12,5,8],'brick');}
+  }});
+  set(11,"School",{gt:'concrete',sp:[0,1.4,58],sky:['#2e5c76','#83aebc','#d5e0df'],fog:'#9eb2b9',fd:.007,b(){
+    sbox([0,-.1,0],[150,.2,150],'concrete');sbox([0,5,-54],[94,10,3],'brick');sbox([-47,5,0],[3,10,108],'brick');sbox([47,5,0],[3,10,108],'brick');sbox([0,5,0],[3,10,90],'brick');
+    for(let x=-30;x<=30;x+=15)for(let z=-36;z<=36;z+=18){sbox([x,1.7,z],[8,3.4,6],'wood');dbox([x,3.9,z],[4,.1,3],'metal',0x6c8ca0)}
+  }});
+  set(12,"Suburbia",{gt:'grass',sp:[0,1.2,58],sky:['#295e88','#87b9d3','#dfeac7'],fog:'#b2c4b2',fd:.005,b(){
+    sbox([0,-.1,0],[150,.2,150],'grass');for(let x=-48;x<=48;x+=24){sbox([x,1,-34],[18,2,28],'concrete');sbox([x,4,-34],[16,4,12],'brick');sbox([x,7,-34],[18,.5,14],'wood');sbox([x,1,10],[18,2,24],'concrete');sbox([x,4,10],[16,4,11],'brick')}
+    for(let x=-60;x<=60;x+=15)dbox([x,.12,0],[8,.03,3],'metal',0x44484b);trees(18,50,76);
+  }});
+  set(13,"Forest",{gt:'grass',sp:[0,1.2,62],sky:['#153a2d','#4d7c5e','#b2c59d'],fog:'#5c7866',fd:.009,b(){
+    sbox([0,-.1,0],[150,.2,150],'grass');for(let i=0;i<52;i++){const a=rnd()*PI*2,r=14+rnd()*60,x=Math.cos(a)*r,z=Math.sin(a)*r,h=5+rnd()*5;sbox([x,h/2,z],[1.2,h,1.2],'wood');blob(x,h+2.4,z,2.8+rnd()*1.6,'grass')}
+    for(let i=0;i<18;i++)sbox([rnd()*120-60,.7,rnd()*120-60],[3,1.4,5],'rock',[0,rnd()*3,0]);ramp([-52,.2,48],[52,.2,48],8,'wood');
+  }});
+  set(14,"Desert Outpost",{gt:'sand',sp:[0,1.4,58],sky:['#6c7e9c','#d5a46f','#ffe0af'],fog:'#c9ad91',fd:.006,sun:'#ffd18e',b(){
+    sbox([0,-.1,0],[150,.2,150],'sand');for(const [x,z] of[[-44,-34],[44,-34],[-44,34],[44,34]]){sbox([x,4,z],[8,8,8],'concrete');sbox([x,9.5,z],[10,1,10],'metal')}
+    for(let x=-30;x<=30;x+=15){sbox([x,1.5,0],[10,3,5],'metal');sbox([x,4.5,0],[6,3,.5],'wood')}
+    sbox([0,1.5,-22],[52,3,4],'brick');sbox([0,1.5,22],[52,3,4],'brick');for(let x=-60;x<=60;x+=12)sbox([x,5,0],[1,10,1],'metal');
+  }});
+})();
 function buildNav(){const n=84,H=new Float32Array(n*n).fill(-99),r=new THREE.Raycaster(),d=new V3(0,-1,0),o=new V3();
 for(let i=0;i<n;i++)for(let j=0;j<n;j++){o.set(-83+i*2,150,-83+j*2);r.set(o,d);r.far=300;const h=r.intersectObjects(SM,false).find(x=>x.face&&x.face.normal.clone().transformDirection(x.object.matrixWorld).y>.6);if(h)H[i*n+j]=h.point.y}NG={n,H}}
 function loadMap(i){mapI=i;const M=MAPS[i];clearVehicles();[...props].forEach(o=>killprop(o,1));[...BOTS].forEach(o=>killBot(o,1));SM.forEach(m=>sc.remove(m));SM.length=0;SB.forEach(b=>world.remove(b));SB.length=0;XM.forEach(m=>sc.remove(m));XM.length=0;LAVA.length=0;pid=0;bid=0;PIDM.clear();DEL.length=0;GR.clear();
