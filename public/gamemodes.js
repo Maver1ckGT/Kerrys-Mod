@@ -292,6 +292,13 @@
       $('gmLoadout').onchange=e=>this.loadout=e.target.value;
       $('gmTeamMode').onclick=()=>{this.teamMode=!this.teamMode;$('gmTeamMode').textContent=this.teamMode?'Team Deathmatch':'Deathmatch';};
       this.setMode(this.modeId);
+      let badge=document.getElementById('gmSuiteStatus');
+      if(!badge){
+        badge=document.createElement('div'); badge.id='gmSuiteStatus';
+        badge.textContent='SUITE ONLINE · 5 MODES · 15 MAPS + 15 SANDBOX VARIANTS';
+        Object.assign(badge.style,{marginTop:'10px',padding:'8px 10px',border:'1px solid #56d5d833',borderRadius:'8px',background:'rgba(86,213,216,.05)',color:'#8debed',fontSize:'11px',fontWeight:'800',letterSpacing:'.05em'});
+        mpEl.parentElement.appendChild(badge);
+      }
     }
     setMode(id){
       if(!this.modes.has(id))id='gm_sandbox';
