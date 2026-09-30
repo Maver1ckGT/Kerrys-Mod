@@ -17,9 +17,9 @@ const srv = http.createServer((q, r) => {
     if (e) { r.writeHead(404); return r.end('not found'); }
     let body = d;
     if (path.extname(f) === '.html') {
-      const tag = '<script src="/gamemodes.js"></script>';
+      const tags = '<script src="/gamemodes.js"></script><script src="/gamemodes-init.js"></script>';
       const html = d.toString('utf8');
-      body = Buffer.from(html.includes(tag) ? html : html.replace(/<\/body>/i, tag + '</body>'));
+      body = Buffer.from(html.includes('/gamemodes.js') ? html : html.replace(/<\/body>/i, tags + '</body>'));
     }
     r.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
     r.end(body);
