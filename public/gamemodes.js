@@ -83,7 +83,7 @@
 
   class PVP extends Gamemode {
     constructor(ctx){ super(ctx); this.id='gm_pvp'; this.title='PVP'; this.limit=15; this.teamMode=false; this.loadout='rifle'; this.startedAt=0; this.finalized=false; }
-    start(){ super.start(); this.finalized=false; this.startedAt=now(); this.ctx.setLegacy('pvp'); this.ctx.setRoundTimer(300); this.configureLoadout(); this.ctx.log('PVP · '+(this.teamMode?'Team Deathmatch':'Deathmatch')+' · first to '+this.limit); }
+    start(){ super.start(); this.finalized=false; this.ctx.enableVoting(); this.startedAt=now(); this.ctx.setLegacy('pvp'); this.ctx.setRoundTimer(300); this.configureLoadout(); this.ctx.log('PVP · '+(this.teamMode?'Team Deathmatch':'Deathmatch')+' · first to '+this.limit); }
     configureLoadout(){ const idx={pistol:2,shotgun:3,rifle:4,sniper:5,rpg:6}[this.loadout] ?? 4; if(typeof cw!=='undefined')cw=idx; if(typeof W!=='undefined'&&Array.isArray(W)&&W[idx]&&W[idx].a<=0)W[idx].a=W[idx].mag||W[idx].a; }
     setLoadout(v){ if(['pistol','shotgun','rifle','sniper','rpg'].includes(v))this.loadout=v; this.configureLoadout(); }
     setTeamMode(v){ this.teamMode=!!v; }
@@ -101,7 +101,7 @@
 
   class PropHunt extends Gamemode {
     constructor(ctx){ super(ctx); this.id='gm_prophunt'; this.title='Prop Hunt'; this.finalized=false; this.tauntCooldown=0; this.assignAt=0; }
-    start(){ super.start(); this.finalized=false; this.assignAt=now(); this.ctx.setLegacy('ph'); this.ctx.setRoundTimer(null); this.ctx.log('PROP HUNT · Hiders disguise · Seekers hunt'); }
+    start(){ super.start(); this.finalized=false; this.ctx.enableVoting(); this.assignAt=now(); this.ctx.setLegacy('ph'); this.ctx.setRoundTimer(null); this.ctx.log('PROP HUNT · Hiders disguise · Seekers hunt'); }
     tick(dt){
       if(!this.running)return;
       this.tauntCooldown=Math.max(0,this.tauntCooldown-dt);
@@ -121,7 +121,7 @@
 
   class Nextbots extends Gamemode {
     constructor(ctx){ super(ctx); this.id='gm_nextbots'; this.title='Nextbots'; this.duration=180; this.remaining=180; this.nextAudio=0; this.contactCooldown=0; this.spawned=[]; this.finalized=false; }
-    start(){ super.start(); this.finalized=false; this.remaining=this.duration; this.ctx.setLegacy('sb'); if(typeof nb!=='undefined')nb=1; try{ BOTS.slice().forEach(b=>killBot(b,true)); }catch{}; const count=Math.min(6,Math.max(2,this.ctx.players().length+1)); for(let i=0;i<count;i++){try{spawnBot(BLIB[i%Math.max(1,BLIB.length)])}catch{}} this.ctx.log('NEXTBOTS · survive 3:00'); }
+    start(){ super.start(); this.finalized=false; this.ctx.enableVoting(); this.remaining=this.duration; this.ctx.setLegacy('sb'); if(typeof nb!=='undefined')nb=1; if(this.ctx.isHost()){ try{ BOTS.slice().forEach(b=>killBot(b,true)); }catch{}; const count=Math.min(6,Math.max(2,this.ctx.players().length+1)); for(let i=0;i<count;i++){try{spawnBot(BLIB[i%Math.max(1,BLIB.length)])}catch{}} } this.ctx.log('NEXTBOTS · survive 3:00'); }
     tick(dt){
       if(!this.running)return;
       this.remaining=Math.max(0,this.remaining-dt);
@@ -138,7 +138,7 @@
 
   class HideSeek extends Gamemode {
     constructor(ctx){ super(ctx); this.id='gm_hideseek'; this.title='Hide & Seek'; this.duration=240; this.hideTime=20; this.phase='blind'; this.remaining=240; this.role='hider'; this.points=0; this.eliminated=new Set(); this.finalized=false; this.lastPoint=0; }
-    start(){ super.start(); this.finalized=false; this.phase='blind'; this.remaining=this.duration; this.points=0; this.eliminated.clear(); const players=this.ctx.players(); const seeker=players[0]||myPeer||myId; this.role=(myPeer||myId)===seeker?'seeker':'hider'; if(!players.length||players.length===1)this.role='hider'; blind=this.role==='seeker'; this.ctx.setLegacy('sb'); this.ctx.log('HIDE & SEEK · '+(this.role==='seeker'?'SEEKER':'HIDER')+' · '+this.hideTime+'s hide phase'); }
+    start(){ super.start(); this.finalized=false; this.ctx.enableVoting(); this.phase='blind'; this.remaining=this.duration; this.points=0; this.eliminated.clear(); const players=this.ctx.players(); const seeker=players[0]||myPeer||myId; this.role=(myPeer||myId)===seeker?'seeker':'hider'; if(!players.length||players.length===1)this.role='hider'; blind=this.role==='seeker'; this.ctx.setLegacy('sb'); this.ctx.log('HIDE & SEEK · '+(this.role==='seeker'?'SEEKER':'HIDER')+' · '+this.hideTime+'s hide phase'); }
     tick(dt){
       if(!this.running)return;
       if(this.phase==='blind'){ this.hideTime=Math.max(0,this.hideTime-dt); if(this.role==='seeker'){ keys.KeyW=keys.KeyA=keys.KeyS=keys.KeyD=false; if(typeof pb!=='undefined')pb.velocity.set(0,0,0); blind=true; } if(this.hideTime<=0){this.phase='seek';blind=false;} }
@@ -177,7 +177,7 @@
     receiveStart(d){ this.options=(d.options||[]).map(id=>CORE_MAPS.find(x=>x.id===id)).filter(Boolean); this.votes.clear(); this.active=true; this.endsAt=Number(d.endsAt)||now()+20000; this.render(); }
     receiveVote(d){if(!this.active)return;const p=String(d.player||'');const id=String(d.mapId||'');if(!this.options.some(x=>x.id===id)||!p)return;this.votes.set(p,id);this.render();}
     vote(mapId){if(!this.active)return;this.ctx.send('gm:vote:cast',{player:myPeer||myId,mapId});if(this.ctx.isHost())this.receiveVote({player:myPeer||myId,mapId});}
-    receiveEnd(d){ if(!this.active)return; this.active=false; this.render(); this.ctx.log('MAP VOTE · '+((CORE_MAPS.find(x=>x.id===d.winner)||{}).name||'next map')); }
+    receiveEnd(d){ if(!this.active)return; this.active=false; this.render(); const winner=CORE_MAPS.find(x=>x.id===d.winner); this.ctx.log('MAP VOTE · '+(winner?.name||'next map')); if(winner)this.ctx.applyMap(winner.id,true); }
     finish(){
       if(!this.active||!this.ctx.isHost())return;
       const counts=new Map(this.options.map(o=>[o.id,0]));
@@ -222,7 +222,7 @@
     }
     boot(){
       WIN.KerrysGamemodeSuite=this; WIN.KM_GAMEMODES={Gamemode,Sandbox,PVP,PropHunt,Nextbots,HideSeek,MapVoting,CORE_MAPS,SANDBOX_MAPS};
-      this.installStyles(); this.patchMenu(); this.patchNetworking(); this.patchStart(); this.patchInput(); this.startLoop();
+      this.installStyles(); this.patchMenu(); this.patchNetworking(); this.patchStart(); this.patchInput(); this.startLoop(); this.waitForRoom();
       if(this.votingEnabled)this.modes.get(this.modeId).start();
     }
     installStyles(){
@@ -255,6 +255,7 @@
     setMode(id){
       if(!this.modes.has(id))id='gm_sandbox';
       this.modeId=id;
+      this.votingEnabled=id!=='gm_sandbox'; this.finalized=false;
       const legacy={gm_sandbox:'sb',gm_pvp:'pvp',gm_prophunt:'ph',gm_nextbots:'sb',gm_hideseek:'sb'}[id];
       const m=this.modes.get(id); if(m){m.stop(); if(m instanceof PVP){m.loadout=this.loadout;m.teamMode=this.teamMode;}}
       $('gm').value=id;
@@ -281,9 +282,12 @@
       for(const x of this.modes.values()) if(x!==m)x.stop();
       if(m instanceof PVP){m.loadout=this.loadout;m.teamMode=this.teamMode;}
       m.start();
-      if(modeId==='gm_sandbox')this.votingEnabled=true;
+      this.votingEnabled=modeId!=='gm_sandbox'; this.finalized=false;
       if(room&&code)room.presence({suiteMode:modeId,suiteMap:mapId,gm:({gm_sandbox:'sb',gm_pvp:'pvp',gm_prophunt:'ph'}[modeId]||'sb'),map:(ALL_MAPS.find(x=>x.id===mapId)||CORE_MAPS[0]).legacy}).catch(()=>{});
       this.updateHud(m.title+(modeId==='gm_sandbox'?' · no timer':''));
+    }
+    waitForRoom(){
+      let tries=0; const timer=setInterval(()=>{ if(room){ clearInterval(timer); this.patchNetworking(); } else if(++tries>120){ clearInterval(timer); } },250);
     }
     patchNetworking(){
       if(!room)return;
