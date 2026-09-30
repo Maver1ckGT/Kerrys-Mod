@@ -1,7 +1,7 @@
 /* Kerry's Mod — modular gamemode suite */
 (() => {
   'use strict';
-  const W = window;
+  const WIN = window;
   const now = () => performance.now();
   const clamp = (n,a,b) => Math.max(a, Math.min(b,n));
   const pick = a => a[Math.floor(Math.random()*a.length)];
@@ -221,7 +221,7 @@
       this.boot();
     }
     boot(){
-      W.KerrysGamemodeSuite=this; W.KM_GAMEMODES={Gamemode,Sandbox,PVP,PropHunt,Nextbots,HideSeek,MapVoting,CORE_MAPS,SANDBOX_MAPS};
+      WIN.KerrysGamemodeSuite=this; WIN.KM_GAMEMODES={Gamemode,Sandbox,PVP,PropHunt,Nextbots,HideSeek,MapVoting,CORE_MAPS,SANDBOX_MAPS};
       this.installStyles(); this.patchMenu(); this.patchNetworking(); this.patchStart(); this.patchInput(); this.startLoop();
       if(this.votingEnabled)this.modes.get(this.modeId).start();
     }
@@ -261,7 +261,7 @@
       if(state!=='play')this.updateHud(this.modes.get(id).title+(id==='gm_sandbox'?' · no timer':''));
     }
     patchStart(){
-      const original=W.start || start;
+      const original=WIN.start || start;
       if(!original||original.__kmSuiteWrapped)return;
       const suite=this;
       const wrapped=function(c,h){
@@ -274,7 +274,7 @@
         suite.modeId=requested;suite.currentMapId=mapId;
         suite.postStart(requested,mapId);
       };
-      wrapped.__kmSuiteWrapped=true; W.start=wrapped;
+      wrapped.__kmSuiteWrapped=true; WIN.start=wrapped;
     }
     postStart(modeId,mapId){
       const m=this.modes.get(modeId); if(!m)return;
@@ -308,7 +308,7 @@
     applyMap(id,remote=false){
       const m=ALL_MAPS.find(x=>x.id===id)||CORE_MAPS[0];this.currentMapId=m.id;
       if($('mp'))$('mp').value=String(m.legacy);
-      const legacyLoad=W.loadMap||loadMap; legacyLoad(m.legacy);
+      const legacyLoad=WIN.loadMap||loadMap; legacyLoad(m.legacy);
       this.modes.get(this.modeId)?.stop();
       const current=this.modes.get(this.modeId); if(current){if(current instanceof Sandbox)current.variant=m.id.startsWith('sb_');current.start();}
       if(room&&code&&!remote){room.presence({suiteMap:m.id,map:m.legacy,gm:({gm_pvp:'pvp',gm_prophunt:'ph'}[this.modeId]||'sb')}).catch(()=>{});this.send('gm:map',{id:m.id});}
@@ -358,8 +358,8 @@
   }
 
   const boot=()=>{
-    if(W.KerrysGamemodeSuite)return;
-    if(!W.THREE || !document.getElementById('gm') || !W.start){ setTimeout(boot,200); return; }
+    if(WIN.KerrysGamemodeSuite)return;
+    if(!WIN.THREE || !document.getElementById('gm') || !WIN.start){ setTimeout(boot,200); return; }
     try{ new Suite(); }catch(e){ console.error('[GamemodeSuite] boot failed',e); }
   };
   boot();
