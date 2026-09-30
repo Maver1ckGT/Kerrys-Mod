@@ -15,8 +15,14 @@ const srv = http.createServer((q, r) => {
   if (rel.startsWith('..' + path.sep) || path.isAbsolute(rel)) { r.writeHead(403); return r.end(); }
   fs.readFile(f, (e, d) => {
     if (e) { r.writeHead(404); return r.end('not found'); }
+    let body = d;
+    if (path.extname(f) === '.html') {
+      const tag = '<script src="/gamemodes.js"></script>';
+      const html = d.toString('utf8');
+      body = Buffer.from(html.includes(tag) ? html : html.replace(/<\/body>/i, tag + '</body>'));
+    }
     r.writeHead(200, { 'Content-Type': MIME[path.extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
-    r.end(d);
+    r.end(body);
   });
 });
 
@@ -30,20 +36,20 @@ wss.on('connection', ws => {
   peers.set(id, me);
   ws.send(JSON.stringify({ t: 'hello', id, peers: [...peers.values()].filter(x => x !== me).map(x => ({ peer: x.id, presence: x.p })) }));
   ws.on('message', raw => {
-    const now = Date.now(); if (now - me.ts > 1000) { me.ts = now; me.cnt = 0; } if (++me.cnt > 400) return; // flood guard
+    const now = Date.now(); if (now - me.ts > 1000) { me.ts = now; me.cnt = 0; } if (++me.cnt > 400) return;
     let m; try { m = JSON.parse(raw); } catch { return; }
     if (m.t === 'p' && m.p && typeof m.p === 'object') {
       for (const k in m.p) { if (m.p[k] === null) delete me.p[k]; else me.p[k] = m.p[k]; }
       bc({ t: 'p', peer: id, p: m.p }, me);
     } else if (m.t === 'e' && typeof m.topic === 'string') {
-      const code = m.data && m.data.c, msg = JSON.stringify({ t: 'e', topic: m.topic.slice(0, 20), data: m.data, peer: id });
+      const code = m.data && m.data.c, msg = JSON.stringify({ t: 'e', topic: m.topic.slice(0, 40), data: m.data, peer: id });
       for (const x of peers.values()) { if (x.ws.readyState !== 1) continue; if (code && x !== me && x.p.code !== code) continue; x.ws.send(msg); }
     }
   });
   ws.on('close', () => { peers.delete(id); bc({ t: 'left', peer: id }); });
   ws.on('error', () => {});
 });
-setInterval(() => { for (const x of peers.values()) if (x.ws.readyState === 1) x.ws.ping(); }, 25000); // keep proxies from idling us out
+setInterval(() => { for (const x of peers.values()) if (x.ws.readyState === 1) x.ws.ping(); }, 25000);
 srv.listen(PORT, '0.0.0.0', () => console.log("Kerry's Mod listening on " + PORT));
 const shutdown = () => srv.close(() => process.exit(0));
 process.on('SIGTERM', shutdown);
