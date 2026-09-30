@@ -212,19 +212,19 @@ function createVehicle(typeId,position,owner=myPeer||myId,id){
 function spawnVehicle(typeId,position){
   const p=position||front(8),spec=VEHICLE_TYPES.find(v=>v.id===typeId);if(!spec)return null;
   p.y=Math.max(.3,p.y||.3);const v=createVehicle(typeId,p,myPeer||myId,vehicleNetId());
-  if(v&&room&&code)room.emit('vehicle',{c:code,e:'spawn',id:v.id,t:typeId,x:p.x,y:p.y,z:p.z,yaw:v.yaw}).catch(()=>{});
+  if(v&&room&&code)room.emit('vehicle',{c:code,m:mapI,e:'spawn',id:v.id,t:typeId,x:p.x,y:p.y,z:p.z,yaw:v.yaw}).catch(()=>{});
   return v;
 }
 function removeVehicle(v){if(!v)return;if(drivenVehicle===v)exitVehicle();world.remove(v.body);sc.remove(v.group);const i=VEHICLES.indexOf(v);if(i>=0)VEHICLES.splice(i,1)}
 function clearVehicles(){
   const localOwner=myPeer||myId;
   VEHICLES.slice().forEach(v=>{
-    if(room&&code&&v.owner===localOwner)room.emit('vehicle',{c:code,e:'remove',id:v.id}).catch(()=>{});
+    if(room&&code&&v.owner===localOwner)room.emit('vehicle',{c:code,m:mapI,e:'remove',id:v.id}).catch(()=>{});
     removeVehicle(v);
   });
   drivenVehicle=null;cameraMode=0;
 }
-function receiveVehicle(d,owner){
+function receiveVehicle(d,owner){if(Number.isInteger(d.m)&&d.m!==mapI)return;
   if(!d||!d.id||!d.e)return;
   if(d.e==='spawn'){
     if(VEHICLES.some(v=>v.id===String(d.id)))return;
@@ -266,7 +266,7 @@ function vehicleTick(dt){
       vehicleSync-=dt;
       if(room&&code&&vehicleSync<=0){
         vehicleSync=.065;
-        room.emit('vehicle',{c:code,e:'move',id:v.id,x:+b.position.x.toFixed(3),y:+b.position.y.toFixed(3),z:+b.position.z.toFixed(3),yaw:+v.yaw.toFixed(4),s:+v.speed.toFixed(3)}).catch(()=>{});
+        room.emit('vehicle',{c:code,m:mapI,e:'move',id:v.id,x:+b.position.x.toFixed(3),y:+b.position.y.toFixed(3),z:+b.position.z.toFixed(3),yaw:+v.yaw.toFixed(4),s:+v.speed.toFixed(3)}).catch(()=>{});
       }
     }else if(!local&&v.target){
       const age=Math.min(.25,Math.max(0,(performance.now()-v.netTime)/1000));
