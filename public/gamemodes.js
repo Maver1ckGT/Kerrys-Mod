@@ -52,15 +52,22 @@
       this.removeVariant();
       if(!this.variant) return;
       try{
-        if(typeof sbox==='function'){ sbox([0,.08,0],[168,.16,168],'concrete', [0,0,0],0x65727c); }
-        for(let x=-72;x<=72;x+=12) if(typeof dbox==='function') dbox([x,.18,0],[.06,.04,150],'metal',0x9aa7ad);
-        for(let z=-72;z<=72;z+=12) if(typeof dbox==='function') dbox([0,.18,z],[150,.04,.06],'metal',0x9aa7ad);
+        // A dedicated sb_ map is a clean build plate, not the original gamemode geometry.
+        [...SM].forEach(m=>{try{sc.remove(m)}catch{}});
+        SM.length=0;
+        [...SB].forEach(b=>{try{world.remove(b)}catch{}});
+        SB.length=0;
+        [...XM].forEach(m=>{try{sc.remove(m)}catch{}});
+        XM.length=0;
+        if(typeof gnd==='function')gnd('concrete',0x59636b);
+        for(let x=-72;x<=72;x+=12) if(typeof dbox==='function')dbox([x,.03,0],[.055,.035,148],'metal',0x9aa7ad);
+        for(let z=-72;z<=72;z+=12) if(typeof dbox==='function')dbox([0,.03,z],[148,.035,.055],'metal',0x9aa7ad);
         this.spawnPads.forEach(p=>{
           const m=new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.6,.05,32),new THREE.MeshBasicMaterial({color:0x55d9e3,transparent:true,opacity:.3}));
-          m.position.set(p[0],.18,p[2]); sc.add(m); this.padMeshes.push(m);
+          m.position.set(p[0],.18,p[2]);sc.add(m);this.padMeshes.push(m);
         });
-        if(typeof placePlayer==='function' && this.spawnPads[0]) placePlayer(...this.spawnPads[0]);
-      }catch(e){ console.warn('[GamemodeSuite] sandbox variant',e); }
+        if(typeof placePlayer==='function')placePlayer(...this.spawnPads[0]);
+      }catch(e){console.warn('[GamemodeSuite] sandbox variant',e);}
     }
     removeVariant(){ this.padMeshes.forEach(m=>{try{sc.remove(m)}catch{}}); this.padMeshes=[]; }
     get spawnPads(){ return [[-45,1.2,-45],[45,1.2,-45],[-45,1.2,45],[45,1.2,45],[0,1.2,0]]; }
